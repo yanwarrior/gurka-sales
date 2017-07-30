@@ -1,0 +1,10 @@
+Django==1.11.3
+djangorestframework==3.6.3
+factory-boy==2.8.1
+Faker==0.7.18
+pkg-resources==0.0.0
+pyaml==17.7.2
+python-dateutil==2.6.1
+pytz==2017.2
+PyYAML==3.12
+six==1.10.0
