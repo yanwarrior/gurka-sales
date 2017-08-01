@@ -7,7 +7,27 @@ from .serializers import ProductSerializer, OrderSerializer
 class ProductList(generics.ListCreateAPIView):
 	queryset = Product.objects.all()
 	serializer_class = ProductSerializer
-	# TODO: adding search Product !
+
+	def get_queryset(self):
+		queryset = Product.objects.all()
+		sku = self.request.query_params.get('sku', None)
+		name = self.request.query_params.get('name', None)
+		price_min = self.request.query_params.get('price_min', None)
+		price_max = self.request.query_params.get('price_max', None)
+
+		if sku:
+			queryset = queryset.filter(sku=sku)
+
+		if name:
+			queryset = queryset.filter(name__contains=name)
+
+		if price_min:
+			queryset = queryset.filter(price__gte=int(price_min))
+
+		if price_max:
+			queryset = queryset.filter(price__lte=int(price_max))
+
+		return queryset
 
 
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
