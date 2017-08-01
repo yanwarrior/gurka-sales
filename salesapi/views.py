@@ -54,3 +54,13 @@ class OrderDetail(generics.RetrieveAPIView):
 	queryset = Order.objects.all()
 	serializer_class = OrderSerializer
 	lookup_field = 'order_number'
+
+
+def report_product_stock_min(request):
+	# Please read: `How can I compare two fields of a model in a query?`
+	# https://stackoverflow.com/a/7054290
+	pass
+
+
+def report_omzet(request):
+	pass
