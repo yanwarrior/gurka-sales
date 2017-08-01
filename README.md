@@ -11,5 +11,5 @@ $ pip install -r requirements.txt
 
 ### Documentation
 
-Documentation you can see here (TODO).
+Documentation you can see [here](https://github.com/yanwarsolah/gurka-sales/wiki).
 
