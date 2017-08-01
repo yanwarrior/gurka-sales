@@ -3,7 +3,7 @@ from rest_framework import serializers
 from django.db.models import Sum
 
 
-def product_not_be_used(product: Product, quantity: int) -> bool:
+def product_is_limited(product: Product, quantity: int) -> bool:
 	if product.stock - quantity <= 0:
 		return True
 	
@@ -13,7 +13,7 @@ def product_not_be_used(product: Product, quantity: int) -> bool:
 	return False
 
 
-def reduce_stock(sku: str, quantity: int) -> Product:
+def calc_stock_product(sku: str, quantity: int) -> Product:
 	try:
 		product = Product.objects.get(sku=sku)
 		product.stock = product.stock - quantity
@@ -24,21 +24,22 @@ def reduce_stock(sku: str, quantity: int) -> Product:
 		raise serializers.ValidationError('Product not available')
 
 
-def calculate_order_detail(order_detail: OrderDetail) -> OrderDetail:
+def calc_subtotal_orderdetail(order_detail: OrderDetail) -> OrderDetail:
 	order_detail.sub_total = order_detail.product.price * order_detail.quantity
 	order_detail.save()
 	return order_detail
 
 
-def calculate_order(order: Order) -> Order:
+def calc_total_change_order(order: Order) -> Order:
 	total = order.order_details.aggregate(total_price=Sum('sub_total'))
 	
 	if order.paid < total.get('total_price'):
 		order.delete()
-		raise serializers.ValidationError('Paid should not be less than total.')
+		raise serializers.ValidationError(
+			'Paid should not be less than total.')
 	else:
 		order.total = total.get('total_price')
-		order.change = order.paid - order.total
+		order.change = order.paid - total.get('total_price')
 		order.save()
 
 	return order

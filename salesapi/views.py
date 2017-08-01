@@ -1,7 +1,7 @@
 from rest_framework import generics
 from rest_framework.response import Response
 from sales.models import Product, Order, OrderDetail
-from .serializers import ProductSerializer, ProductDetailSerializer, OrderSerializer
+from .serializers import ProductSerializer, OrderSerializer
 
 
 class ProductList(generics.ListCreateAPIView):
@@ -12,7 +12,7 @@ class ProductList(generics.ListCreateAPIView):
 
 class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
 	queryset = Product.objects.all()
-	serializer_class = ProductDetailSerializer
+	serializer_class = ProductSerializer
 	lookup_field = 'sku'
 
 

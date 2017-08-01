@@ -1,25 +1,12 @@
 from rest_framework import serializers
 from sales.models import Product, Order, OrderDetail
-from salesapi.helpers import (product_not_be_used, 
-	reduce_stock, calculate_order, calculate_order_detail)
+from salesapi.helpers import (product_is_limited, 
+	calc_stock_product, calc_subtotal_orderdetail, calc_total_change_order)
 
 # TODO: Create tests.
 # TODO: Add features for reporting data.
 
 class ProductSerializer(serializers.ModelSerializer):
-
-	class Meta:
-		model = Product
-		fields = ('sku', 
-				  'name', 
-				  'base_price', 
-				  'price', 
-				  'stock', 
-				  'stock_min')
-
-
-class ProductDetailSerializer(serializers.ModelSerializer):
-	sku = serializers.ReadOnlyField()
 
 	class Meta:
 		model = Product
@@ -59,7 +46,7 @@ class OrderSerializer(serializers.ModelSerializer):
 			sku = order_detail_data.get('product')
 			product = Product.objects.get(sku=sku)
 
-			if product_not_be_used(product, order_detail_data.get('quantity')):
+			if product_is_limited(product, order_detail_data.get('quantity')):
  				raise serializers.ValidationError(f"product {product.sku} dont't be add to order")
 
 		return data
@@ -70,15 +57,15 @@ class OrderSerializer(serializers.ModelSerializer):
 
 		for order_detail_data in order_details_data:
 			sku = order_detail_data.pop('product')
-			product = reduce_stock(sku, order_detail_data.get('quantity'))
+			product = calc_stock_product(sku, order_detail_data.get('quantity'))
 			order_detail = OrderDetail.objects.create(
 				order=order, 
 				product=product, 
 				**order_detail_data)
 
-			calculate_order_detail(order_detail)
+			calc_subtotal_orderdetail(order_detail)
 
-		order = calculate_order(order)
+		order = calc_total_change_order(order)
 
 		return order
 
