@@ -30,14 +30,20 @@ def calc_subtotal_orderdetail(order_detail: OrderDetail) -> OrderDetail:
 	return order_detail
 
 
-def calc_total_change_order(order: Order) -> Order:
+def order_paid_is_valid(order: Order) -> bool:
 	total = order.order_details.aggregate(total_price=Sum('sub_total'))
 	
 	if order.paid < total.get('total_price'):
 		order.delete()
 		raise serializers.ValidationError(
 			'Paid should not be less than total.')
-	else:
+
+	return True
+
+
+def calc_total_change_order(order: Order) -> Order:
+	if order_paid_is_valid(order):
+		total = order.order_details.aggregate(total_price=Sum('sub_total'))
 		order.total = total.get('total_price')
 		order.change = order.paid - total.get('total_price')
 		order.save()

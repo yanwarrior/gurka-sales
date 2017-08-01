@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from sales.models import Product, Order, OrderDetail
 from salesapi.helpers import (product_is_limited, 
-	calc_stock_product, calc_subtotal_orderdetail, calc_total_change_order)
+	calc_stock_product, calc_subtotal_orderdetail, calc_total_change_order, order_paid_is_valid)
 
 # TODO: Create tests.
 # TODO: Add features for reporting data.
@@ -56,8 +56,8 @@ class OrderSerializer(serializers.ModelSerializer):
 		order = Order.objects.create(**validated_data)
 
 		for order_detail_data in order_details_data:
-			sku = order_detail_data.pop('product')
-			product = calc_stock_product(sku, order_detail_data.get('quantity'))
+			product = calc_stock_product(order_detail_data.pop('product'), 
+										 order_detail_data.pop('quantity'))
 			order_detail = OrderDetail.objects.create(
 				order=order, 
 				product=product, 
@@ -66,10 +66,10 @@ class OrderSerializer(serializers.ModelSerializer):
 			calc_subtotal_orderdetail(order_detail)
 
 		order = calc_total_change_order(order)
-
 		return order
 
 
-
+		# TODO: need to check again from create order with oder details 
+		# using Postman.
 
 
