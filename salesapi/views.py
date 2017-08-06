@@ -67,37 +67,6 @@ class OrderDetail(generics.RetrieveAPIView):
 	lookup_field = 'order_number'
 
 
-@api_view(['GET'])
-def report_product_stock_min(request):
-	# Please read: `How can I compare two fields of a model in a query?`
-	# https://stackoverflow.com/a/7054290
-	instance = Product.objects.filter(stock__lte=F('stock_min'))
-	serializer = ReportStockMinimumSerializer(instance, many=True)
-	return Response(serializer.data)
-
-
-
-
-
-@api_view(['GET'])
-def report_omzet(request):
-	context = {'request': request}
-	paginator = PageNumberPagination()
-	paginator.page_size = 1
-
-	start_date = request.query_params.get('start_date')
-	end_date = request.query_params.get('end_date')
-	if start_date and end_date:
-		instance = Order.objects.filter(order_date__range=(start_date, end_date))
-	else:
-		instance = Order.objects.all()
-
-	instance = paginator.paginate_queryset(instance, request)
-	serializer_all = ReportSaleSerializer(instance, many=True)
-	# serializer_one = CountTotalSerializer(instance)
-	return Response(serializer_all.data)
-
-
 class ReportProductStockMin(generics.ListAPIView):
 	queryset = Order.objects.filter(stock__lte=F('stock_min'))
 	serializer_class = ReportStockMinimumSerializer
