@@ -72,4 +72,13 @@ class OrderSerializer(serializers.ModelSerializer):
 		# TODO: need to check again from create order with oder details 
 		# using Postman.
 
-
+class ReportStockMinimumSerializer(serializers.BaseSerializer):
+	def to_representation(self, obj):
+		return {
+			'sku': obj.sku,
+			'name': obj.name,
+			'base_price': obj.base_price,
+			'price': obj.price,
+			'stock': obj.stock,
+			'stock_min': obj.stock_min
+		}

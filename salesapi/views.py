@@ -1,7 +1,11 @@
+from django.db.models import F
+
 from rest_framework import generics
 from rest_framework.response import Response
+from rest_framework.decorators import api_view
+
 from sales.models import Product, Order, OrderDetail
-from .serializers import ProductSerializer, OrderSerializer
+from .serializers import ProductSerializer, OrderSerializer, ReportStockMinimumSerializer
 
 
 class ProductList(generics.ListCreateAPIView):
@@ -56,10 +60,13 @@ class OrderDetail(generics.RetrieveAPIView):
 	lookup_field = 'order_number'
 
 
+@api_view(['GET'])
 def report_product_stock_min(request):
 	# Please read: `How can I compare two fields of a model in a query?`
 	# https://stackoverflow.com/a/7054290
-	pass
+	instance = Product.objects.filter(stock__lte=F('stock_min'))
+	serializer = ReportStockMinimumSerializer(instance, many=True)
+	return Response(serializer.data)
 
 
 def report_omzet(request):
