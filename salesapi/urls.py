@@ -8,5 +8,6 @@ urlpatterns = [
 	url(r'^products/(?P<sku>[\w-]+)/$', views.ProductDetail.as_view(), name='detail'),
 	url(r'^orders/$', views.OrderList.as_view(), name='order-list'),
 	url(r'^orders/(?P<order_number>[\w-]+)/$', views.OrderDetail.as_view(), name='order-list'),
-	url(r'^products/report/stock/$', views.report_product_stock_min, name='report-product-stock'),
+	url(r'^report/products/stock/$', views.ReportProductStockMin.as_view(), name='report-product-stock'),
+	url(r'^reports/omzet/$', views.ReportOmzet.as_view(), name='report_omzet'),
 ]

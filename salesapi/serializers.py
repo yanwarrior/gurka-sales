@@ -56,8 +56,8 @@ class OrderSerializer(serializers.ModelSerializer):
 		order = Order.objects.create(**validated_data)
 
 		for order_detail_data in order_details_data:
-			product = calc_stock_product(order_detail_data.pop('product'), 
-										 order_detail_data.pop('quantity'))
+			product = calc_stock_product(order_detail_data.get('product'), 
+										 order_detail_data.get('quantity'))
 			order_detail = OrderDetail.objects.create(
 				order=order, 
 				product=product, 
@@ -82,3 +82,12 @@ class ReportStockMinimumSerializer(serializers.BaseSerializer):
 			'stock': obj.stock,
 			'stock_min': obj.stock_min
 		}
+
+
+class ReportSaleSerializer(serializers.BaseSerializer):
+	def to_representation(self, obj):
+		return {
+			"order_number": obj.order_number,
+			"total": obj.total
+		}
+

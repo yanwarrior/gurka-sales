@@ -1,11 +1,18 @@
 from django.db.models import F
+from django.db.models import Sum
 
 from rest_framework import generics
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 
 from sales.models import Product, Order, OrderDetail
-from .serializers import ProductSerializer, OrderSerializer, ReportStockMinimumSerializer
+from .serializers import (
+	ProductSerializer, 
+	OrderSerializer, 
+	ReportStockMinimumSerializer,
+	ReportSaleSerializer)
+
+from rest_framework.pagination import PageNumberPagination
 
 
 class ProductList(generics.ListCreateAPIView):
@@ -69,5 +76,58 @@ def report_product_stock_min(request):
 	return Response(serializer.data)
 
 
+
+
+
+@api_view(['GET'])
 def report_omzet(request):
-	pass
+	context = {'request': request}
+	paginator = PageNumberPagination()
+	paginator.page_size = 1
+
+	start_date = request.query_params.get('start_date')
+	end_date = request.query_params.get('end_date')
+	if start_date and end_date:
+		instance = Order.objects.filter(order_date__range=(start_date, end_date))
+	else:
+		instance = Order.objects.all()
+
+	instance = paginator.paginate_queryset(instance, request)
+	serializer_all = ReportSaleSerializer(instance, many=True)
+	# serializer_one = CountTotalSerializer(instance)
+	return Response(serializer_all.data)
+
+
+class ReportProductStockMin(generics.ListAPIView):
+	queryset = Order.objects.filter(stock__lte=F('stock_min'))
+	serializer_class = ReportStockMinimumSerializer
+
+
+class ReportOmzet(generics.ListAPIView):
+	queryset = Order.objects.all()
+	serializer_class = ReportSaleSerializer
+
+	def filter_queryset(self, queryset):
+		start_date = self.request.query_params.get('start_date')
+		end_date = self.request.query_params.get('end_date')
+
+		queryset = Order.objects.all()
+
+		if start_date and end_date:
+			queryset = Order.objects.filter(order_date__range=(start_date, end_date))
+		
+		return queryset
+
+	def list(self, request, *args, **kwargs):
+		queryset = self.filter_queryset(self.get_queryset())
+		data = queryset.aggregate(total=Sum('total'))
+
+		page = self.paginate_queryset(queryset)
+		if page is not None:
+			serializer = self.get_serializer(page, many=True)
+			data.update({'orders': serializer.data})
+			return self.get_paginated_response(data)
+
+		serializer = self.get_serializer(queryset, many=True)
+		data.update({'orders': serializer.data})
+		return Response(data)
