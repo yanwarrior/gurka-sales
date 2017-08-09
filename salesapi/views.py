@@ -3,7 +3,6 @@ from django.db.models import Sum
 
 from rest_framework import generics
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
 
 from sales.models import Product, Order, OrderDetail
 from .serializers import (
@@ -13,6 +12,8 @@ from .serializers import (
 	ReportSaleSerializer)
 
 from rest_framework.pagination import PageNumberPagination
+from .helpers import tweak_report_omzet_list
+from .core.pagination import LinkHeaderPagination
 
 
 class ProductList(generics.ListCreateAPIView):
@@ -47,15 +48,6 @@ class ProductDetail(generics.RetrieveUpdateDestroyAPIView):
 	lookup_field = 'sku'
 
 
-class ProductDeleteBulk(generics.DestroyAPIView):
-	queryset = Product.objects.all()
-	serializer_class = ProductSerializer
-
-	def delete(self, *args, **kwargs):
-		Product.objects.all().delete()
-		return Response({})
-
-
 class OrderList(generics.ListCreateAPIView):
 	queryset = Order.objects.all()
 	serializer_class = OrderSerializer
@@ -68,35 +60,26 @@ class OrderDetail(generics.RetrieveAPIView):
 
 
 class ReportProductStockMin(generics.ListAPIView):
-	queryset = Order.objects.filter(stock__lte=F('stock_min'))
+	queryset = Product.objects.filter(stock__lte=F('stock_min'))
 	serializer_class = ReportStockMinimumSerializer
 
 
 class ReportOmzet(generics.ListAPIView):
 	queryset = Order.objects.all()
 	serializer_class = ReportSaleSerializer
+	pagination_class = LinkHeaderPagination
 
 	def filter_queryset(self, queryset):
 		start_date = self.request.query_params.get('start_date')
 		end_date = self.request.query_params.get('end_date')
-
 		queryset = Order.objects.all()
 
 		if start_date and end_date:
-			queryset = Order.objects.filter(order_date__range=(start_date, end_date))
+			queryset = Order.objects.filter(
+				order_date__range=(start_date, end_date))
 		
 		return queryset
 
+	@tweak_report_omzet_list
 	def list(self, request, *args, **kwargs):
-		queryset = self.filter_queryset(self.get_queryset())
-		data = queryset.aggregate(total=Sum('total'))
-
-		page = self.paginate_queryset(queryset)
-		if page is not None:
-			serializer = self.get_serializer(page, many=True)
-			data.update({'orders': serializer.data})
-			return self.get_paginated_response(data)
-
-		serializer = self.get_serializer(queryset, many=True)
-		data.update({'orders': serializer.data})
-		return Response(data)
+		return super(ReportOmzet, self).list(request, *args, **kwargs)

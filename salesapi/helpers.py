@@ -1,6 +1,7 @@
 from sales.models import Product, Order, OrderDetail
 from rest_framework import serializers
-from django.db.models import Sum
+from rest_framework.response import Response
+from django.db.models import Sum, Count
 
 
 def product_is_limited(product: Product, quantity: int) -> bool:
@@ -51,7 +52,22 @@ def calc_total_change_order(order: Order) -> Order:
 	return order
 
 
+def tweak_report_omzet_list(func):
+	RESPONSE_ARGS = 1
+	VIEW_ARGS = 0
 
+	def wrap(*args, **kwargs):
+		view = args[VIEW_ARGS]
+		queryset = view.filter_queryset(view.get_queryset())
+		total_orders = queryset.aggregate(total=Sum('total'), count=Count('order_number'))
+		total_orders.update({'orders': func(*args, **kwargs).data})
+		headers = {val[0]: val[1] for key, val in func(*args, **kwargs)._headers.items()}
+		
+		return Response(total_orders, headers=headers)
 
+	wrap.__name__ = func.__name__
+	wrap.__doc__ = func.__doc__
+	return wrap
+		
 
-
+		

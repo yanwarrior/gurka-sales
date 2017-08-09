@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from sales.models import Product, Order, OrderDetail
 from salesapi.helpers import (product_is_limited, 
 	calc_stock_product, calc_subtotal_orderdetail, calc_total_change_order, order_paid_is_valid)
@@ -85,9 +86,19 @@ class ReportStockMinimumSerializer(serializers.BaseSerializer):
 
 
 class ReportSaleSerializer(serializers.BaseSerializer):
+
 	def to_representation(self, obj):
+		url = self.context['request'].build_absolute_uri
+		href = url(reverse('salesapi:order_detail', kwargs={'order_number': obj.order_number}))
 		return {
 			"order_number": obj.order_number,
-			"total": obj.total
+			"total": obj.total,
+			"href": href,
+			"items": obj.order_details.count(),
+			# TODO: add link for retrieve order details !
+				
 		}
+
+	class Meta:
+		model = Order
 

@@ -1,5 +1,4 @@
 from django.db import models
-import random
 
 
 class Product(models.Model):
@@ -43,5 +42,7 @@ class OrderDetail(models.Model):
 
 	class Meta:
 		db_table = 'orderdetail'
+
+
 
 

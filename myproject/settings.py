@@ -89,7 +89,7 @@ DATABASES = {
 }
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'salesapi.core.pagination.LinkHeaderPagination',
+    'DEFAULT_PAGINATION_CLASS': 'myproject.core.pagination.LinkHeaderPagination',
     'PAGE_SIZE': 10
 }
 
