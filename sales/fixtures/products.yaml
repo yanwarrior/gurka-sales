@@ -1,17 +1,39 @@
 - model: sales.Product
-  pk: 1
   fields:
-    sku: P001
+    sku: P0001
     name: Permen
     base_price: 1000
     price: 1300
     stock: 20
     stock_min: 5
 - model: sales.Product
-  pk: 2
   fields:
     sku: P0002
     name: Ciki
+    base_price: 1000
+    price: 1500
+    stock: 100
+    stock_min: 50
+- model: sales.Product
+  fields:
+    sku: P0003
+    name: Sabun
+    base_price: 1000
+    price: 1500
+    stock: 100
+    stock_min: 50
+- model: sales.Product
+  fields:
+    sku: P0004
+    name: Wafer
+    base_price: 1000
+    price: 1500
+    stock: 100
+    stock_min: 50
+- model: sales.Product
+  fields:
+    sku: P0005
+    name: Sekrup
     base_price: 1000
     price: 1500
     stock: 100

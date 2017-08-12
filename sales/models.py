@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 
 class Product(models.Model):
@@ -11,6 +12,9 @@ class Product(models.Model):
 
 	def __str__(self):
 		return self.sku
+
+	def get_absolute_url(self):
+		return reverse('salesapi:product_detail', kwargs={'sku': self.sku})
 
 	class Meta:
 		db_table = 'product'
@@ -34,8 +38,8 @@ class OrderDetail(models.Model):
 	order = models.ForeignKey(Order, related_name='order_details')
 	product = models.ForeignKey(Product, related_name='product_detail')
 	quantity = models.PositiveIntegerField()
-	price = models.PositiveIntegerField()
-	sub_total = models.PositiveIntegerField()
+	price = models.PositiveIntegerField() # TODO: price null
+	sub_total = models.PositiveIntegerField() # TODO: sub_total null
 
 	def __str__(self):
 		return self.order.order_number + " " + self.product.sku

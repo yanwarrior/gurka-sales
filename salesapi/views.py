@@ -11,10 +11,6 @@ from .serializers import (
 	ReportStockMinimumSerializer,
 	ReportSaleSerializer)
 
-from rest_framework.pagination import PageNumberPagination
-from .helpers import tweak_report_omzet_list
-from .core.pagination import LinkHeaderPagination
-
 
 class ProductList(generics.ListCreateAPIView):
 	queryset = Product.objects.all()
@@ -67,7 +63,6 @@ class ReportProductStockMin(generics.ListAPIView):
 class ReportOmzet(generics.ListAPIView):
 	queryset = Order.objects.all()
 	serializer_class = ReportSaleSerializer
-	pagination_class = LinkHeaderPagination
 
 	def filter_queryset(self, queryset):
 		start_date = self.request.query_params.get('start_date')
@@ -80,6 +75,18 @@ class ReportOmzet(generics.ListAPIView):
 		
 		return queryset
 
-	@tweak_report_omzet_list
 	def list(self, request, *args, **kwargs):
-		return super(ReportOmzet, self).list(request, *args, **kwargs)
+		queryset = self.filter_queryset(self.get_queryset())
+		total_order = queryset.aggregate(total_order=Sum('total'))
+		page = self.paginate_queryset(queryset)
+
+		if page is not None:
+			serializer = self.get_serializer(page, many=True)
+			data.update({'items': serializer.data})
+			
+			return self.get_paginated_response(data)
+
+		serializer = self.get_serializer(queryset, many=True)
+		data.update({'items': serializer.data})
+		
+		return Response(data)
